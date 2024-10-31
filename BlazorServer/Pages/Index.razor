@@ -1,9 +1,67 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager 
+@implements IAsyncDisposable
 
-<PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="form-group">
+    <label>
+        User : <input type="text" class="form-control" @bind="userInput" />
+    </label>
+</div>
 
-Welcome to your new app.
+<div class="form-group">
+    <label>
+        Message : <input type="text" class="form-control" @bind="messageInput" />
+    </label>
+</div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+<button class="btn btn-primary" @onclick="Send" disabled="@(IsConnected == false)">Send</button>
+
+<ul>
+    @foreach (var message in messages)
+    {
+        <li>@message</li>
+    }   
+</ul>
+@code{
+    private HubConnection hubConnection;
+    private List<string> messages = new List<string>();
+    private string? userInput;
+    private string? messageInput;
+    private bool IsConnected  => hubConnection?.State == HubConnectionState.Connected;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chatHub"))
+            .WithAutomaticReconnect()
+            .Build();
+
+        //cupture an event, why <string, string> ? becuase in the hub we have it like that
+        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        {
+            var formatedMessage = $"{user}: {message}";
+            messages.Add(formatedMessage);
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    private async Task Send()
+    {
+        if(hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendMessage", userInput, messageInput);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if(hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}
