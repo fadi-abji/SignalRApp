@@ -28,5 +28,15 @@
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" MaxHeight="200">
             <ListBox x:Name="messages" Margin="20" Padding="20 10" BorderThickness="0"></ListBox>
         </ScrollViewer>
+
+
+        <StackPanel Orientation="Horizontal" Grid.Row="3" HorizontalAlignment="Center">
+            <Button x:Name="openCounter"  IsEnabled="true" Padding="20 10" Margin="20" Click="openCounter_Click">
+                Open Counter Connection
+            </Button>
+            <Button x:Name="incrementCouter" Padding="20 10" Margin="20" Click="incrementCouter_Click">
+                Increment Counter
+            </Button>
+        </StackPanel>
     </Grid>
 </Window>
